@@ -1,12 +1,8 @@
 from chatbot import app
-from flask import render_template, request, redirect, url_for, flash, session
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import login_user, logout_user, login_required, current_user
-from datetime import datetime, date, time
-from flask import Blueprint, request, jsonify, render_template
+from flask import render_template, request
+from flask import request, jsonify, render_template
 import google.generativeai as genai
-import pandas as pd
-from .secret import secretkey, SECRET_KEY
+from .secret import secretkey
 
 
 genai.configure(api_key=secretkey)
