@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+<style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .chat-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .messages-box {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding-bottom: 60px;
+    }
+
+    .messages-list {
+      padding-left: 0;
+      list-style: none;
+      margin: 0;
+    }
+
+    .message {
+      margin-bottom: 10px;
+    }
+
+    .message-text {
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .sent {
+      background-color: #dcf8c6;
+      align-self: flex-end;
+    }
+
+    .received {
+      background-color: #f1f0f0;
+      align-self: flex-start;
+    }
+
+    .message-form {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      background-color: #f8f9fa;
+      z-index: 1;
+    }
+
+    .message-input {
+      flex: 1;
+      border-radius: 0;
+      border-right: none;
+    }
+
+    .btn-send {
+      border-radius: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+  <div class="card">
+    <div class="card-header bg-primary text-white">Chat</div>
+    <div class="card-body messages-box" id="messages-box">
+      <ul class="messages-list">
+        <li class="message received">
+          <div class="message-text">
+            <div class="message-sender"><b>Medico Bot</b></div>
+            <div class="message-content">Welcome to Medico! I am Medico Bot, I'm here to assist you.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <form class="message-form" id="message-form">
+    <div class="input-group">
+      <input type="text" id="message-input" class="form-control message-input" placeholder="Type your message..." required>
+      <div class="input-group-append">
+        <button type="submit" class="btn btn-primary btn-send">Send</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+    const messagesList = document.querySelector('.messages-list');
+    const messageForm = document.querySelector('#message-form');
+    const messageInput = document.querySelector('#message-input');
+    const messagesBox = document.querySelector('#messages-box');
+
+    function scrollToBottom() {
+        messagesBox.scrollTop = messagesBox.scrollHeight;
+    }
+
+    function addMessage(sender, messageContent, type = 'sent') {
+        const messageItem = document.createElement('li');
+        messageItem.classList.add('message', type);
+        messageItem.innerHTML = `
+        <div class="message-text">
+            <div class="message-sender">
+                <b>${sender}</b>
+            </div>
+            <div class="message-content">
+                ${messageContent}
+            </div>
+        </div>`;
+        messagesList.appendChild(messageItem);
+        scrollToBottom();
+    }
+
+    messageForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const userMessage = messageInput.value.trim();
+        if (!userMessage) return;
+
+        addMessage('You', userMessage, 'sent');
+
+        messageInput.value = '';
+
+        fetch('/chatbot', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({ message: userMessage })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const botMessage = data.response;
+            addMessage('Medico Bot', botMessage, 'received');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+    window.onload = scrollToBottom;
+</script>
+{% endblock %}
